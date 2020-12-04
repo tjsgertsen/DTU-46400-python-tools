@@ -20,6 +20,7 @@ class SQLDatabaseClient:
     a cache folder in order to store (large) data files so that you do not have to
     load the data each time you run the script.
     """
+
     def __init__(self, job_config):
         """
         Initialize an object.
@@ -40,11 +41,13 @@ class SQLDatabaseClient:
                 "host": self.credentials_store["host"],
                 "port": self.credentials_store["port"],
                 "database": self.credentials_store["database"],
-                'query': {'charset': self.engine_encoding},
+                "query": {"charset": self.engine_encoding},
             }
         except (KeyError, TypeError, ValueError, OverflowError):
             self.credentials_store = None
-            LOGGER.debug("No destination is given, in local_config.yaml, to store data.")
+            LOGGER.debug(
+                "No destination is given, in local_config.yaml, to store data."
+            )
 
         self.cache_dir = job_config["directories"]["cache_dir"]
         self.query_dir = job_config["directories"]["query_dir"]
@@ -65,8 +68,9 @@ class SQLDatabaseClient:
                 os.remove(file_path)
 
     @retry(
-        wait=wait_exponential(multiplier=1, min=5, max=10), stop=stop_after_attempt(10),
-        before_sleep=before_sleep_log(LOGGER, logging.INFO)
+        wait=wait_exponential(multiplier=1, min=5, max=10),
+        stop=stop_after_attempt(10),
+        before_sleep=before_sleep_log(LOGGER, logging.INFO),
     )
     def load_data(self, filename, index_cols=0, use_cache=False):
         """
@@ -79,17 +83,20 @@ class SQLDatabaseClient:
             df (DataFrame): pandas DataFrame with queried data.
         """
         cache_filename = os.path.join(
-            self.cache_dir, self.cache_file_fmt.format(filename, self.suffix),
+            self.cache_dir,
+            self.cache_file_fmt.format(filename, self.suffix),
         )
 
         if os.path.exists(cache_filename) and use_cache:
             LOGGER.info("Loading {} data from cache.".format(filename))
-            with open(cache_filename, 'rb') as f:
+            with open(cache_filename, "rb") as f:
                 df = pickle.load(f)
 
         else:
             LOGGER.info("Querying {} from database.".format(filename))
-            query = Path(self.query_dir, self.query_file_fmt.format(filename)).read_text()
+            query = Path(
+                self.query_dir, self.query_file_fmt.format(filename)
+            ).read_text()
 
             if self.db_client is None:
                 self.db_client = pymysql.connect(
@@ -146,8 +153,9 @@ class SQLDatabaseClient:
         return sqldtype_dict
 
     @retry(
-        wait=wait_exponential(multiplier=1, min=5, max=10), stop=stop_after_attempt(10),
-        before_sleep=before_sleep_log(LOGGER, logging.INFO)
+        wait=wait_exponential(multiplier=1, min=5, max=10),
+        stop=stop_after_attempt(10),
+        before_sleep=before_sleep_log(LOGGER, logging.INFO),
     )
     def write_data(self, df, table_name, if_exists="fail"):
         """
@@ -160,17 +168,22 @@ class SQLDatabaseClient:
         LOGGER.info(f"Writing dataframe to database.")
 
         if self.credentials_store is None:
-            raise ValueError("No destination is given, in local_config.yaml, to store data.")
+            raise ValueError(
+                "No destination is given, in local_config.yaml, to store data."
+            )
 
         if self.db_engine is None:
             engine_url = url.URL(**self.engine_dict)
             LOGGER.debug(engine_url)
 
-            self.db_engine = sqlalchemy.create_engine(engine_url, encoding=self.engine_encoding)
+            self.db_engine = sqlalchemy.create_engine(
+                engine_url, encoding=self.engine_encoding
+            )
 
         sql_dtypes = self.dtype_to_sqldtype(df.reset_index())
-        df.to_sql(table_name,
-                  con=self.db_engine,
-                  if_exists=if_exists,
-                  dtype=sql_dtypes,
-                  )
+        df.to_sql(
+            table_name,
+            con=self.db_engine,
+            if_exists=if_exists,
+            dtype=sql_dtypes,
+        )
