@@ -1,0 +1,16 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+Numpy = "~=1.18.1"
+Pandas = "~=1.1"
+PyYAML = "~=5.3.1"
+PyMySQL = "~=0.10.0"
+sqlalchemy = "~=1.3.19"
+tenacity = "~=6.0.0"
+oauth2client = "~=4.1.3"
+
+[requires]
+python_version = "3.7"

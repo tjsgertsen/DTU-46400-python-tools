@@ -1,0 +1,25 @@
+directories:
+  query_dir: queries
+  cache_dir: cache
+  datadump_dir: datadump
+
+load_query: v52_records
+index_columns: 2
+use_cache: False
+
+load:
+  host: xxx.xxx.xx.xxx
+  port: 3306
+  database: <DATABASENAME>
+  username: <USERNAME>
+  password: <PASSWORD>
+
+store:
+  drivername: mysql+pymysql
+  host: xxx.xxx.xx.xxx
+  port: 3306
+  database: <DATABASENAME>
+  username: <USERNAME>
+  password: <PASSWORD>
+  encoding: utf8
+
